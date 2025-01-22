@@ -1,1 +1,77 @@
+Table Command ----
+
+index="vk_idx" sourcetype="csv" |table ticket_number, severity, current_ticket_state
+
+Rename Command ----
+
+index="vk_idx" sourcetype="csv" 
+| table ticket_number, severity, current_ticket_state 
+| rename ticket_number as "Incident Number", severity as priority
+
+Stats ----
+
+Count -
+
+index="vk_idx" sourcetype="csv" | stats count as total by current_ticket_state, severity
+
+Sum -
+
+index=_internal |stats sum(bytes) as total_bytes by sourcetype
+
+Avg - 
+
+index=_internal |stats avg(bytes) as total_bytes by sourcetype
+
+FillNull ---
+
+index=_internal |stats avg(bytes) as total_bytes by sourcetype | fillnull value="NULL" total_bytes
+
+Sort - 
+
+index=_internal |stats avg(bytes) as total_bytes by sourcetype |sort - total_bytes|fillnull value="NULL" total_bytes
+
+list - 
+
+index=_internal |stats list(source) by sourcetype
+
+value - 
+
+index=_internal |stats values(source) by sourcetype
+
+
+eval - 
+
+index=_internal sourcetype=splunkd_ui_access 
+| eval kb = bytes/1024 
+| table kb, bytes
+
+index=_internal sourcetype=splunkd_ui_access 
+| eval kb = round(bytes/1024,3)." KB" 
+| table kb, bytes
+
+if else --
+
+index=vk_idx | dedup severity |table severity | sort severity | eval status = if(severity<3,"High", "Normal")
+
+Case ---
+
+index=vk_idx 
+| dedup severity 
+| table severity 
+| sort severity 
+| eval status = case(severity=1, "Critical", severity=2, "High", severity=3, "Low", 1=1, "info")
+
+Rare - 
+
+index=_internal | rare sourcetype
+
+Top - 
+
+index=_internal | top limit=0 sourcetype
+
+Fields - 
+
+index=_internal | rare sourcetype | fields - percent
+
+
 
